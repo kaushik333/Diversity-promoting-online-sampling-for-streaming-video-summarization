@@ -270,8 +270,3 @@ for beta in np.nditer(beta_array):
             cap1.release()
             cv2.destroyAllWindows()
             print("Done with Video ",vidNum)
-
-
-########################################
-### DO ONLINE CLUSTERING WITH SOME DIVERSITY SCORE
-########################################
