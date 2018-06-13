@@ -2,7 +2,7 @@
 
 The code is designed for 2 scenarios: 
 1. Using the VSUMM dataset
-2. Streaming from webcam - takes live video stream for 2 minutes (change to as desired).  
+2. Streaming from webcam - takes live video stream for 2 minutes (change the duration as desired).  
 
 Note: This is only the implementation of the proposed method in the paper [1]. 
 
