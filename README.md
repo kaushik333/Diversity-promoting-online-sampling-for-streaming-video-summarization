@@ -32,4 +32,5 @@ Would recommend running it in Anaconda spyder editor or anything analogous to it
 
 # References: 
 [1] Anirudh, R., Masroor, A., & Turaga, P. (2016). Diversity Promoting Online Sampling for Streaming Video Summarization.
+
 [2] https://sites.google.com/site/vsummsite/download
