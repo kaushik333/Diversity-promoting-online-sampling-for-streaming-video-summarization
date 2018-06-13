@@ -12,8 +12,10 @@ OS: Ubuntu 16.04 (14.04 works too)
 
 To install opencv download anaconda and create a virtual environment. Then you can either follow: https://www.pyimagesearch.com/2016/10/24/ubuntu-16-04-how-to-install-opencv/
 
-or just do (much easier) : 
+or just do (much easier):
+
 source activate virtualEnvironmentName
+
 pip install opencv-python  ---->  in the terminal (inside the virtual environment). 
 
 
