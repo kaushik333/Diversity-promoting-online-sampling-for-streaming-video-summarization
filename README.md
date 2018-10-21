@@ -26,6 +26,10 @@ We make use of the VSUMM dataset which can be found in [2]. Download the videos 
 3. Place the 50 downloaded videos in the "database" folder. 
 4. Place the user summaries in the "UserSummary" folder. 
 
+# Feature Extraction methods
+
+HOG feature extraction, VGG16, Resnet50 pretrained on ImageNet. 
+
 # Running code
 Would recommend running it in Anaconda spyder editor or anything analogous to it so that it is easier to debug. 
 
