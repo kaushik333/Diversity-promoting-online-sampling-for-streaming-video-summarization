@@ -12,23 +12,38 @@ import os, shutil
 import time
 import glob
 from pywt import wavedec2
-import time
+from keras.preprocessing import image
+from keras.applications.vgg16 import VGG16
+from keras.applications.resnet50 import ResNet50
+from keras.applications.vgg16 import preprocess_input
+import numpy as np
+import ssl
+from keras.models import Model
 
 ########################################
 ### EXTRACT FEATURE
 ########################################
+def convnet_feat(Funcframe,model):
+    
+    # resize image
+    Funcframe_new = np.zeros((224,224,3))
+    Funcframe_new[:,:,0] = cv2.resize(Funcframe[:,:,0], (224,224))
+    Funcframe_new[:,:,1] = cv2.resize(Funcframe[:,:,1], (224,224))
+    Funcframe_new[:,:,2] = cv2.resize(Funcframe[:,:,2], (224,224))
+
+    x = image.img_to_array(Funcframe)
+    x = np.expand_dims(x, axis=0)
+    x = preprocess_input(x)
+
+    Funcframe_new = np.expand_dims(Funcframe_new, axis=0)
+    convnet_feat = model.predict(Funcframe_new)
+    convnet_feat_np = np.array(convnet_feat)
+    #print convnet_feat_np.flatten().shape
+    return convnet_feat_np.flatten()
 
 def featureExtraction(Funcframe):
-#    win_size = (64, 128)
-#    Funcframe = cv2.resize(Funcframe, win_size)
-#    Funcframe = np.array(Funcframe)
-#    cA2 = cA2.astype(np.uint8)
     Funcframe = Funcframe.astype(np.uint8)
-    
-#    coeffs = wavedec2(Funcframe, 'haar', level=1)   
-#    cA2 = coeffs[1][0]
-#    FuncframeFeature = cA2
-    
+       
     ###############################
     ###HOG FEATURE EXTRACTION
     ###############################
@@ -69,7 +84,6 @@ def performClustering(frameFeat, frameNumber, k, beta, centroids, idx):
     N_samples = 1
     N_centroids = k;
     z = np.random.rand(1, N_samples)
-    print(frameNumber)
     #iter_labels = np.zeros(N_samples)
     div_cost = np.zeros(N_samples)
     for i in range(0, N_samples):
@@ -129,15 +143,21 @@ while not(my_in==1 or my_in==2):
 
 #beta_array = np.arange(0,1.2,0.2)
 beta_array = np.array([0])
+ssl._create_default_https_context = ssl._create_unverified_context
+#base_model = VGG16(weights='imagenet', include_top=False)
+base_model = ResNet50(weights='imagenet')
+model = Model(inputs=base_model.input, outputs=base_model.get_layer('avg_pool').output)
 for beta in np.nditer(beta_array):
     if my_in==1:
         path = "./Videos/database/"
         vid_names = sorted(os.listdir(path))
         num_vid = np.arange(0,len(vid_names))
         string = "dataset"
+
     else:
         num_vid = np.array([1]) #uncomment this for webcam streaming video. 
         string = "webcam"
+
     for vidNum in np.nditer(num_vid):
         if my_in==1:
             video = vid_names[vidNum]
@@ -164,7 +184,7 @@ for beta in np.nditer(beta_array):
             
         else:
             saveFolder = "./Videos/results_HOG_"+string+"/python_summary_"+str(beta)+"/"
-            if not os.path.exists(saveFolder):
+	    if not os.path.exists(saveFolder):
                 os.makedirs(saveFolder)
             numSummary = 8 #set it to whatever you want
             print("Number of Summary frames will be ",numSummary) 
@@ -179,17 +199,17 @@ for beta in np.nditer(beta_array):
         ##################################
         if my_in==1:
             cap = cv2.VideoCapture(path+video)
-            condition = cap.isOpened()
         else:
             cap = cv2.VideoCapture(0)  #this is open webcam and stream data from it. 
-            begin_time=time.time()
+	    begin_time=time.time()
             condition = (time.time() - begin_time <120) #set time as desired; here it is 120 seconds
         print("Frame rate is ",cap.get(cv2.CAP_PROP_FPS))
         print("Video opened is ",cap.isOpened())
         exemplarIndices = list()
         index = list()
         start_time = time.clock()
-        while(condition):
+        
+        while(condition): #cap.isOpened()
             ret, frame = cap.read()
             if ret is True:     
                 cv2.imshow('frame',frame)
@@ -197,8 +217,11 @@ for beta in np.nditer(beta_array):
                 #####################################
                 ##FEATURE EXTRACTION
                 #####################################
+
                 frameFeature = featureExtraction(grayFrame)
-            
+#                frameFeature = convnet_feat(frame,model)
+
+
                 #####################################
                 ##CLUSTERING
                 #####################################  
@@ -214,7 +237,9 @@ for beta in np.nditer(beta_array):
                             centroidFrames[changedFrame] = frame
                     p = list(index2)    
                     index1 = p    
-                    condition = (time.time() - begin_time <120)
+                    
+		    condition = (time.time() - begin_time <30)
+
 #                    if cv2.waitKey(1) & 0xFF == ord('q'):
 #                        print("Here")
 #                        index1 = np.sort(index1)
@@ -222,21 +247,19 @@ for beta in np.nditer(beta_array):
 #                            name = saveFolder+str(index1[saveIndex])+".jpg"
 #                            cv2.imwrite(name,centroidFrames[saveIndex])                    
 #                        break
-                    
-                    shutil.rmtree(saveFolder)
+
+		    shutil.rmtree(saveFolder)
                     os.makedirs(saveFolder)
                     index_final = np.sort(index1)
                     for saveIndex in range(0, len(centroidFrames)):
                         name = saveFolder+str(index_final[saveIndex])+".jpg"
-                        cv2.imwrite(name,centroidFrames[saveIndex])                    
-#                    break
-                    
+                        cv2.imwrite(name,centroidFrames[saveIndex])       
+
                 else:
                     exemplarIndices,index = performClustering(frameFeature, frameNum, int(numSummary), beta, exemplarIndices, index)
-                    condition = cap.isOpened()
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
-                print frameNum
+                print(frameNum)
                 frameNum+=1
             else:
                 break
