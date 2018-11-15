@@ -1,4 +1,4 @@
-# Diversity-promoting-online-sampling-for-streaming-video-summarization
+# Video Summarization
 
 The code is designed for 2 scenarios: 
 1. Using the VSUMM dataset
